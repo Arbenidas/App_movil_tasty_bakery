@@ -1,40 +1,26 @@
 name: app_gestion_pedidos
 description: "Un nuevo proyecto de Flutter."
-
-# Prevenir publicación accidental
 publish_to: 'none' 
-
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0' # Asegúrate que esto coincida con tu versión de Flutter/Dart
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # Aquí puedes agregar otros paquetes (ej: cupertino_icons)
+  
   cupertino_icons: ^1.0.2
+  provider: ^6.1.2                # Para manejar el estado del carrito
+  flutter_animate: ^4.5.0         # Para las animaciones
+  google_fonts: ^6.2.1            # Para fuentes profesionales
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^2.0.0
 
-# La sección importante de Flutter
 flutter:
-  
   uses-material-design: true
-
-  # --- ESTA ES LA SECCIÓN CLAVE ---
-  # Asegúrate de que 'assets:' esté alineado con 'uses-material-design:' (2 espacios)
-  # Y que '- assets/images/' esté indentado debajo (4 espacios en total)
   assets:
     - assets/images/
-
-  # Si quieres agregar fuentes, va aquí
-  # fonts:
-  #   - family: Inter
-  #     fonts:
-  #       - asset: assets/fonts/Inter-Regular.ttf
