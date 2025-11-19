@@ -26,5 +26,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/images/placeholders # <-- AGREGA ESTA LÍNEA
     - assets/animations/         # <--- AGREGA ESTA LÍNEA
