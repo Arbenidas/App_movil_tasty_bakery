@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../data/product_data.dart';
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
-import 'cart_screen.dart'; // Crearemos esta pantalla a continuación
+import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,18 +15,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  ProductCategory _selectedCategory = ProductCategory.combos;
+  // Asegúrate de iniciar con una categoría que tenga productos
+  ProductCategory _selectedCategory = ProductCategory.pasteles; 
 
- // DESPUÉS (Corregido)
-List<Product> get _filteredProducts {
-  return DUMMY_PRODUCTS
-      .where((product) =>
-          product.category == _selectedCategory &&
-          !product.isRecommended) // <-- AÑADE ESTA LÍNEA
-      .toList();
-}
+  List<Product> get _filteredProducts {
+    return DUMMY_PRODUCTS
+        .where((product) =>
+            product.category == _selectedCategory && !product.isRecommended)
+        .toList();
+  }
 
-  // Obtiene los productos recomendados
   List<Product> get _recommendedProducts {
     return DUMMY_PRODUCTS.where((product) => product.isRecommended).toList();
   }
@@ -39,7 +37,6 @@ List<Product> get _filteredProducts {
       appBar: AppBar(
         title: const Text('Tasty Bakery'),
         actions: [
-          // Botón del carrito con contador
           Consumer<CartProvider>(
             builder: (_, cart, ch) => Badge(
               label: Text(cart.itemCount.toString()),
@@ -58,57 +55,85 @@ List<Product> get _filteredProducts {
           const SizedBox(width: 10),
         ],
       ),
-      body: ListView(
-        children: [
-          // --- SECCIÓN DE RECOMENDACIONES ---
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Te Recomendamos',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(color: theme.primaryColor),
-            ),
-          ),
-          Container(
-            height: 320, // Altura fija para la lista horizontal
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _recommendedProducts.length,
-              itemBuilder: (ctx, i) => ProductCard(
-                product: _recommendedProducts[i],
-                isHorizontal: true,
+      // --- CAMBIOS PARA WEB ---
+      // Centramos el contenido y le damos un ancho máximo
+      // para que no se vea raro en pantallas muy anchas.
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: ListView(
+            children: [
+              // --- SECCIÓN DE RECOMENDACIONES ---
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Te Recomendamos',
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(color: theme.primaryColor),
+                ),
               ),
-            ),
-          ),
+              Container(
+                height: 320,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _recommendedProducts.length,
+                  // Agregamos padding horizontal para web
+                  padding: const EdgeInsets.symmetric(horizontal: 16), 
+                  itemBuilder: (ctx, i) => ProductCard(
+                    product: _recommendedProducts[i],
+                    isHorizontal: true,
+                  ),
+                ),
+              ),
 
-          // --- SECCIÓN DE CATEGORÍAS ---
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-            child: Text(
-              'Categorías',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(color: theme.primaryColor),
-            ),
-          ),
-          _buildCategoryChips(),
+              // --- SECCIÓN DE CATEGORÍAS ---
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Text(
+                  'Nuestro Catálogo', // Título actualizado
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(color: theme.primaryColor),
+                ),
+              ),
+              _buildCategoryChips(),
 
-          // --- GRID DE PRODUCTOS FILTRADOS ---
-          GridView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _filteredProducts.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 columnas
-              childAspectRatio: 0.65, // Ajusta esto para el tamaño
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemBuilder: (ctx, i) => ProductCard(
-              product: _filteredProducts[i],
-            ),
+              // --- GRID DE PRODUCTOS FILTRADOS (RESPONSIVO) ---
+              GridView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _filteredProducts.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                // --- CAMBIO DE GRID PARA WEB ---
+                // Reemplazamos SliverGridDelegateWithFixedCrossAxisCount
+                // por SliverGridDelegateWithMaxCrossAxisExtent.
+                // Esto crea tantas columnas como quepan, con un ancho
+                // máximo de 350px por tarjeta.
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 350, // Ancho máx. de cada tarjeta
+                  childAspectRatio: 0.8, // Ratio Ancho/Alto (ajustado)
+                  crossAxisSpacing: 20, // Espacio horizontal (aumentado)
+                  mainAxisSpacing: 20,  // Espacio vertical (aumentado)
+                ),
+                itemBuilder: (ctx, i) => ProductCard(
+                  product: _filteredProducts[i],
+                ),
+              ),
+              // Mensaje si la categoría está vacía (después de filtrar)
+              if (_filteredProducts.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(50),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'No hay productos en esta categoría (que no sean recomendados).',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600]
+                    ),
+                  ),
+                )
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -117,12 +142,16 @@ List<Product> get _filteredProducts {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
+      // En Web, es mejor que esto sea un ListView que un Wrap,
+      // para mantener el diseño limpio.
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: ProductCategory.values.map((category) {
           final isSelected = _selectedCategory == category;
-          String categoryName =
-              category.toString().split('.').last.toUpperCase();
+          // Capitaliza la primera letra, el resto en minúscula
+          String categoryName = category.toString().split('.').last;
+          categoryName =
+              '${categoryName[0].toUpperCase()}${categoryName.substring(1)}';
 
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
